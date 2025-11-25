@@ -143,7 +143,7 @@ export const SearchBar = ({
             <Search className="w-6 h-6 text-white/60" />
             <input
               className="flex-1 bg-transparent outline-none text-lg placeholder-white/35"
-              type="search"
+              type="text"
               autoComplete="off"
               spellCheck={false}
               value={value}
