@@ -135,7 +135,13 @@ const App = () => {
               isInTeam={isCurrentInTeam}
               canAdd={slotsRemaining > 0}
             />
-            <BattleIntelPanel subject={data} catalog={catalogNames} />
+            <BattleIntelPanel
+              subject={data}
+              catalog={catalogNames}
+              catalogLoading={catalogLoading}
+              catalogReady={catalogReady}
+              catalogError={catalogError}
+            />
           </>
         )}
 
@@ -147,6 +153,9 @@ const App = () => {
           lastAdded={lastAdded}
           slotsRemaining={slotsRemaining}
           catalog={catalogNames}
+          catalogLoading={catalogLoading}
+          catalogReady={catalogReady}
+          catalogError={catalogError}
           onAddByName={addPokemonByName}
           onRemove={removePokemon}
           onClear={clearTeam}

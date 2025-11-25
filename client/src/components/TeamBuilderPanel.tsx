@@ -1,10 +1,11 @@
-import { useEffect, useId, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Shield, AlertTriangle, Layers, Users } from 'lucide-react';
 import clsx from 'clsx';
 import type { PokemonData, TeamMetrics } from '../types';
 import { formatPokemonLabel } from '../utils/pokemon';
 import { MAX_TEAM_SIZE } from '../utils/teamMetrics';
+import { PokemonSuggestInput } from './PokemonSuggestInput';
 
 interface TeamBuilderPanelProps {
   team: PokemonData[];
@@ -14,6 +15,9 @@ interface TeamBuilderPanelProps {
   lastAdded: string | null;
   slotsRemaining: number;
   catalog: string[];
+  catalogLoading: boolean;
+  catalogReady: boolean;
+  catalogError: string | null;
   onAddByName: (name: string) => Promise<boolean>;
   onRemove: (name: string) => void;
   onClear: () => void;
@@ -28,12 +32,14 @@ export const TeamBuilderPanel = ({
   lastAdded,
   slotsRemaining,
   catalog,
+  catalogLoading,
+  catalogReady,
+  catalogError,
   onAddByName,
   onRemove,
   onClear,
   resetFeedback,
 }: TeamBuilderPanelProps) => {
-  const datalistId = useId();
   const [nameInput, setNameInput] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -49,16 +55,17 @@ export const TeamBuilderPanel = ({
     }
   }, [status, lastAdded, error]);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    const success = await onAddByName(nameInput);
-    if (!success) return;
-  };
-
   const handleInputChange = (value: string) => {
     if (feedback) setFeedback(null);
     if (status !== 'idle') resetFeedback();
     setNameInput(value);
+  };
+
+  const handleSuggestSubmit = async (normalized: string) => {
+    const success = await onAddByName(normalized);
+    if (!success) return false;
+    setNameInput('');
+    return true;
   };
 
   const emptySlots = useMemo(() => MAX_TEAM_SIZE - team.length, [team.length]);
@@ -98,59 +105,31 @@ export const TeamBuilderPanel = ({
             </div>
           </header>
 
-          <form className="flex flex-col gap-3 md:flex-row" onSubmit={handleSubmit}>
-            <div className="flex-1">
-              <label className="text-xs uppercase tracking-[0.3em] text-white/50">Quick enlist</label>
-              <div className="mt-2 relative">
-                <input
-                  list={datalistId}
-                  value={nameInput}
-                  onChange={(event) => handleInputChange(event.target.value)}
-                  placeholder="Type a Pokémon (e.g., tyranitar)"
-                  className="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-300/60 text-base capitalize"
-                />
-                <datalist id={datalistId}>
-                  {catalog.map((entry) => (
-                    <option key={entry} value={entry} />
-                  ))}
-                </datalist>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="px-6 py-3 rounded-2xl bg-emerald-400/20 border border-emerald-200/40 text-emerald-100 font-semibold flex items-center gap-2 disabled:opacity-60"
-                disabled={status === 'loading' || slotsRemaining === 0}
-              >
-                <Plus className="w-4 h-4" />
-                {status === 'loading' ? 'Recruiting…' : 'Add to squad'}
-              </button>
-              <button
-                type="button"
-                className="px-6 py-3 rounded-2xl bg-white/5 border border-white/15 text-white/80"
-                onClick={() => {
-                  setNameInput('');
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/50">Quick enlist</label>
+            <div className="mt-3">
+              <PokemonSuggestInput
+                value={nameInput}
+                onChange={handleInputChange}
+                onSubmit={handleSuggestSubmit}
+                placeholder="Type a Pokémon (e.g., tyranitar)"
+                buttonLabel={status === 'loading' ? 'Recruiting…' : 'Add to squad'}
+                isBusy={status === 'loading' || slotsRemaining === 0}
+                suggestions={catalog}
+                suggestionsLoading={catalogLoading}
+                suggestionsReady={catalogReady}
+                suggestionsError={catalogError}
+                clearOnSuccess
+                className="w-full"
+                externalMessage={feedback}
+                externalTone={status === 'error' ? 'error' : 'success'}
+                onClear={() => {
                   setFeedback(null);
                   resetFeedback();
                 }}
-              >
-                Clear
-              </button>
+              />
             </div>
-          </form>
-
-          {feedback && (
-            <div
-              className={clsx(
-                'px-4 py-3 rounded-2xl text-sm border',
-                status === 'error'
-                  ? 'bg-rose-500/10 border-rose-400/30 text-rose-100'
-                  : 'bg-emerald-500/10 border-emerald-400/30 text-emerald-100'
-              )}
-            >
-              {feedback}
-            </div>
-          )}
+          </div>
 
           <div className="grid gap-4 md:grid-cols-3">
             {slots.map((member, index) => (

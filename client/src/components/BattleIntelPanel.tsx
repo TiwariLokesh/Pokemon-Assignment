@@ -1,10 +1,11 @@
-import { useEffect, useId, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Shield, Swords, Crosshair } from 'lucide-react';
 import clsx from 'clsx';
 import type { PokemonData, DefenseMatchup, AttackMatchup, MatchupReport } from '../types';
 import { useBattleIntel } from '../hooks/useBattleIntel';
 import { formatPokemonLabel } from '../utils/pokemon';
+import { PokemonSuggestInput } from './PokemonSuggestInput';
 
 const formatMultiplier = (value: number) => {
   if (!Number.isFinite(value)) return 'x1';
@@ -14,10 +15,18 @@ const formatMultiplier = (value: number) => {
 type BattleIntelPanelProps = {
   subject: PokemonData;
   catalog: string[];
+  catalogLoading?: boolean;
+  catalogReady?: boolean;
+  catalogError?: string | null;
 };
 
-export const BattleIntelPanel = ({ subject, catalog }: BattleIntelPanelProps) => {
-  const datalistId = useId();
+export const BattleIntelPanel = ({
+  subject,
+  catalog,
+  catalogLoading = false,
+  catalogReady = true,
+  catalogError = null,
+}: BattleIntelPanelProps) => {
   const { report, status, error, meta, analyze } = useBattleIntel(subject.name);
   const [opponentDraft, setOpponentDraft] = useState('');
 
@@ -25,9 +34,10 @@ export const BattleIntelPanel = ({ subject, catalog }: BattleIntelPanelProps) =>
     setOpponentDraft('');
   }, [subject.name]);
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    analyze(opponentDraft || null);
+  const handleSubmit = async (normalized: string) => {
+    const target = normalized || null;
+    await analyze(target);
+    return true;
   };
 
   const handleReset = () => {
@@ -79,41 +89,34 @@ export const BattleIntelPanel = ({ subject, catalog }: BattleIntelPanelProps) =>
             </p>
           </header>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                list={datalistId}
-                placeholder="Enter opponent name (e.g., charizard)"
-                className="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-300/60 text-base capitalize"
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="flex-1">
+              <PokemonSuggestInput
                 value={opponentDraft}
-                onChange={(event) => setOpponentDraft(event.target.value)}
+                onChange={setOpponentDraft}
+                onSubmit={handleSubmit}
+                placeholder="Enter opponent name (e.g., charizard)"
+                buttonLabel={status === 'loading' ? 'Analyzing…' : 'Run Intel'}
+                isBusy={status === 'loading' && !report}
+                suggestions={catalog}
+                suggestionsLoading={catalogLoading}
+                suggestionsReady={catalogReady}
+                suggestionsError={catalogError}
+                allowEmpty
+                clearOnSuccess={false}
+                enforceCatalog
               />
-              <datalist id={datalistId}>
-                {catalog.map((name) => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
             </div>
-            <div className="flex gap-3">
+            {report?.versus && (
               <button
-                type="submit"
-                className="px-5 py-3 rounded-2xl bg-amber-400/20 border border-amber-200/40 text-amber-100 font-semibold disabled:opacity-60"
-                disabled={status === 'loading' && !report}
+                type="button"
+                onClick={handleReset}
+                className="px-5 py-3 rounded-2xl bg-white/5 border border-white/15 text-white/80"
               >
-                {status === 'loading' ? 'Analyzing…' : 'Run Intel'}
+                Clear opponent
               </button>
-              {report?.versus && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="px-5 py-3 rounded-2xl bg-white/5 border border-white/15 text-white/80"
-                >
-                  Clear opponent
-                </button>
-              )}
-            </div>
-          </form>
+            )}
+          </div>
 
           {error && (
             <div className="text-rose-200 bg-rose-500/10 border border-rose-500/30 px-4 py-3 rounded-2xl text-sm">
