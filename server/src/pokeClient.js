@@ -13,9 +13,23 @@ const sanitizeFlavorText = (entries = []) => {
 };
 
 const buildSpriteList = (sprites) => {
-  const { other = {}, versions, ...rest } = sprites ?? {};
-  const flattened = Object.values({ ...rest, ...other?.['official-artwork'] }).filter(Boolean);
-  return flattened;
+  if (!sprites) return [];
+  const { other = {} } = sprites;
+  const preferred = [
+    other['official-artwork']?.front_default,
+    other.home?.front_default,
+    other.dream_world?.front_default,
+    sprites.front_default,
+    sprites.front_shiny,
+  ];
+
+  const fallback = Object.values({
+    back_default: sprites.back_default,
+    back_shiny: sprites.back_shiny,
+  });
+
+  const combined = [...preferred, ...fallback].filter(Boolean);
+  return [...new Set(combined)];
 };
 
 const formatPokemon = (pokemonPayload, speciesPayload) => ({
@@ -75,13 +89,13 @@ export const fetchPokemonData = async (name) => {
 export const fetchPokemonCatalog = async () => {
   try {
     const response = await api.get('/pokemon-species', {
-      params: { limit: 2000, offset: 0 }
-    })
-    return response.data.results.map((entry) => entry.name).sort()
+      params: { limit: 2000, offset: 0 },
+    });
+    return response.data.results.map((entry) => entry.name).sort();
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw createError(502, `Vendor error: ${error.message}`)
+      throw createError(502, `Vendor error: ${error.message}`);
     }
-    throw createError(500, 'Unable to fetch Pokémon catalog')
+    throw createError(500, 'Unable to fetch Pokémon catalog');
   }
-}
+};
