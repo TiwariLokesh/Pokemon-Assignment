@@ -4,6 +4,7 @@ import type { ButtonHTMLAttributes } from 'react';
 import { SearchBar } from './components/SearchBar';
 import { PokemonCard } from './components/PokemonCard';
 import { LoadingCard } from './components/LoadingCard';
+import { BattleIntelPanel } from './components/BattleIntelPanel';
 import { usePokemonSearch } from './hooks/usePokemonSearch';
 import { usePokemonCatalog } from './hooks/usePokemonCatalog';
 
@@ -110,7 +111,12 @@ const App = () => {
           </motion.div>
         )}
 
-        {data && <PokemonCard data={data} />}
+        {data && (
+          <>
+            <PokemonCard data={data} />
+            <BattleIntelPanel subject={data} catalog={catalogNames} />
+          </>
+        )}
       </main>
     </div>
   );

@@ -32,3 +32,61 @@ export type PokemonData = {
   legendary: boolean;
   mythical: boolean;
 };
+
+export type DefenseMatchup = {
+  type: string;
+  multiplier: number;
+};
+
+export type AttackMatchup = {
+  type: string;
+  target: string;
+  multiplier: number;
+};
+
+export type VersusBreakdown = {
+  attackType: string;
+  multiplier: number;
+};
+
+export type MatchupReport = {
+  defense: {
+    resistantTo: DefenseMatchup[];
+    vulnerableTo: DefenseMatchup[];
+    immuneTo: DefenseMatchup[];
+  };
+  attack: {
+    strongAgainst: AttackMatchup[];
+    weakAgainst: AttackMatchup[];
+    noEffect: AttackMatchup[];
+  };
+  summary: {
+    bestCounters: string[];
+    resistHighlights: DefenseMatchup[];
+  };
+  versus: {
+    opponentTypes: string[];
+    offense: {
+      bestType: string | null;
+      multiplier: number;
+      breakdown: VersusBreakdown[];
+    };
+    defense: {
+      riskiestType: string | null;
+      multiplier: number;
+      breakdown: VersusBreakdown[];
+    };
+    verdict: string;
+  } | null;
+};
+
+export type BattleIntelResponse = {
+  data: MatchupReport;
+  meta: {
+    subject: string;
+    opponent: {
+      name: string;
+      source: string;
+    } | null;
+  };
+};
