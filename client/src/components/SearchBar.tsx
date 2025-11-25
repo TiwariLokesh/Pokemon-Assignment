@@ -77,7 +77,7 @@ export const SearchBar = ({
     }
 
     if (!validateName(normalized)) {
-      setInlineError('Aisa koi Pokemon nahi hai.')
+      setInlineError('No Pokemon with this name.')
       return
     }
 

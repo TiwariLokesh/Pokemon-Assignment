@@ -44,7 +44,7 @@ export const usePokemonSearch = () => {
       if (err instanceof HTTPError) {
         const body = await err.response.json().catch(() => null);
         if (err.response.status === 404) {
-          setError('Aisa koi Pokemon nahi hai.');
+          setError('No Pokemon with this name.');
         } else {
           setError(body?.error?.message ?? 'Pokémon data temporarily unavailable.');
         }
