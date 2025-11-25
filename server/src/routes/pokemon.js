@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import createError from 'http-errors';
 import { z } from 'zod';
-import { fetchPokemonData } from '../pokeClient.js';
+import { fetchPokemonData, fetchPokemonCatalog } from '../pokeClient.js';
 import { getCached, setCached } from '../cache.js';
 
 const router = Router();
@@ -22,6 +22,20 @@ const parseName = (payload) => {
   }
   return result.data.name;
 };
+
+router.get('/catalog', async (_req, res, next) => {
+  try {
+    const cacheKey = 'pokemon:catalog';
+    let catalog = getCached(cacheKey);
+    if (!catalog) {
+      catalog = await fetchPokemonCatalog();
+      setCached(cacheKey, catalog);
+    }
+    res.json({ data: catalog });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/', async (req, res, next) => {
   try {

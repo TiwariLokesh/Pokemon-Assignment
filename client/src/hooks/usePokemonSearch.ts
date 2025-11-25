@@ -1,20 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import ky, { type BeforeRequestHook } from 'ky';
+import { HTTPError } from 'ky';
 import type { PokemonData } from '../types';
+import { apiClient } from '../lib/api';
+import { normalizePokemonName } from '../utils/pokemon';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
-
-const attachClientHeader: BeforeRequestHook = (request: Request) => {
-  request.headers.set('x-client', 'novadex-ui');
-};
-
-const api = ky.create({
-  prefixUrl: '/api',
-  timeout: 8000,
-  hooks: {
-    beforeRequest: [attachClientHeader],
-  },
-});
 
 export const usePokemonSearch = () => {
   const [status, setStatus] = useState<Status>('idle');
@@ -23,8 +13,8 @@ export const usePokemonSearch = () => {
   const abortRef = useRef<AbortController | null>(null);
 
   const search = useCallback(async (name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) {
+    const normalized = normalizePokemonName(name);
+    if (!normalized) {
       setData(null);
       setStatus('idle');
       setError(null);
@@ -40,9 +30,9 @@ export const usePokemonSearch = () => {
     setError(null);
 
     try {
-      const response = await api
+      const response = await apiClient
         .get('pokemon', {
-          searchParams: { name: trimmed.toLowerCase() },
+          searchParams: { name: normalized },
           signal: controller.signal,
         })
         .json<{ data: PokemonData }>();
@@ -51,9 +41,18 @@ export const usePokemonSearch = () => {
       setStatus('success');
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
-      setError(
-        err instanceof Error ? err.message : 'Unable to load that Pokémon right now.',
-      );
+      if (err instanceof HTTPError) {
+        const body = await err.response.json().catch(() => null);
+        if (err.response.status === 404) {
+          setError('Aisa koi Pokemon nahi hai.');
+        } else {
+          setError(body?.error?.message ?? 'Pokémon data temporarily unavailable.');
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Unable to load that Pokémon right now.');
+      }
       setStatus('error');
     }
   }, []);

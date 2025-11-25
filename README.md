@@ -36,6 +36,7 @@ The Vite dev server starts on `http://localhost:5173` and proxies `/api` request
 - Ultra-fast Pokémon lookups with cache-aware REST API wrapper over [PokeAPI](https://pokeapi.co/)
 - Graceful error handling (validation, upstream failures, cache misses)
 - Cinematic UI with animated hero, holographic cards, live stat meters, and spotlight shortcuts
+- Smart autosuggest search that surfaces valid Pokémon as you type (case-insensitive with friendly invalid-name messaging)
 - Responsive layout, custom typography, and polished micro-interactions via Tailwind + Framer Motion
 - Strong typing across the React layer for maintainability
 

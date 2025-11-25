@@ -71,3 +71,17 @@ export const fetchPokemonData = async (name) => {
     throw createError(500, 'Unexpected error while talking to PokeAPI');
   }
 };
+
+export const fetchPokemonCatalog = async () => {
+  try {
+    const response = await api.get('/pokemon-species', {
+      params: { limit: 2000, offset: 0 }
+    })
+    return response.data.results.map((entry) => entry.name).sort()
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw createError(502, `Vendor error: ${error.message}`)
+    }
+    throw createError(500, 'Unable to fetch Pokémon catalog')
+  }
+}

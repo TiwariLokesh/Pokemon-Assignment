@@ -5,6 +5,7 @@ import { SearchBar } from './components/SearchBar';
 import { PokemonCard } from './components/PokemonCard';
 import { LoadingCard } from './components/LoadingCard';
 import { usePokemonSearch } from './hooks/usePokemonSearch';
+import { usePokemonCatalog } from './hooks/usePokemonCatalog';
 
 const spotlightPokemon = ['pikachu', 'charizard', 'gengar', 'greninja', 'garchomp'];
 
@@ -29,6 +30,12 @@ const HeroBadge = ({ label, ...buttonProps }: HeroBadgeProps) => (
 
 const App = () => {
   const { data, error, status, search } = usePokemonSearch();
+  const {
+    names: catalogNames,
+    loading: catalogLoading,
+    ready: catalogReady,
+    error: catalogError,
+  } = usePokemonCatalog();
   const isLoading = status === 'loading';
 
   return (
@@ -58,7 +65,14 @@ const App = () => {
           </p>
         </motion.div>
 
-        <SearchBar onSearch={search} isLoading={isLoading} />
+        <SearchBar
+          onSearch={search}
+          isLoading={isLoading}
+          suggestions={catalogNames}
+          suggestionsLoading={catalogLoading}
+          suggestionsReady={catalogReady}
+          suggestionsError={catalogError}
+        />
 
         <motion.div
           className="flex flex-wrap gap-3 justify-center"
