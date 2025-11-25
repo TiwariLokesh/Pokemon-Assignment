@@ -5,8 +5,10 @@ import { SearchBar } from './components/SearchBar';
 import { PokemonCard } from './components/PokemonCard';
 import { LoadingCard } from './components/LoadingCard';
 import { BattleIntelPanel } from './components/BattleIntelPanel';
+import { TeamBuilderPanel } from './components/TeamBuilderPanel';
 import { usePokemonSearch } from './hooks/usePokemonSearch';
 import { usePokemonCatalog } from './hooks/usePokemonCatalog';
+import { useTeamBuilder } from './hooks/useTeamBuilder';
 
 const spotlightPokemon = ['pikachu', 'charizard', 'gengar', 'greninja', 'garchomp'];
 
@@ -37,6 +39,20 @@ const App = () => {
     ready: catalogReady,
     error: catalogError,
   } = usePokemonCatalog();
+  const {
+    team,
+    metrics,
+    status: teamStatus,
+    error: teamError,
+    lastAdded,
+    slotsRemaining,
+    addPokemon,
+    addPokemonByName,
+    removePokemon,
+    clearTeam,
+    resetFeedback,
+  } = useTeamBuilder();
+  const isCurrentInTeam = data ? team.some((member) => member.name === data.name) : false;
   const isLoading = status === 'loading';
 
   return (
@@ -113,10 +129,29 @@ const App = () => {
 
         {data && (
           <>
-            <PokemonCard data={data} />
+            <PokemonCard
+              data={data}
+              onAddToTeam={addPokemon}
+              isInTeam={isCurrentInTeam}
+              canAdd={slotsRemaining > 0}
+            />
             <BattleIntelPanel subject={data} catalog={catalogNames} />
           </>
         )}
+
+        <TeamBuilderPanel
+          team={team}
+          metrics={metrics}
+          status={teamStatus}
+          error={teamError}
+          lastAdded={lastAdded}
+          slotsRemaining={slotsRemaining}
+          catalog={catalogNames}
+          onAddByName={addPokemonByName}
+          onRemove={removePokemon}
+          onClear={clearTeam}
+          resetFeedback={resetFeedback}
+        />
       </main>
     </div>
   );

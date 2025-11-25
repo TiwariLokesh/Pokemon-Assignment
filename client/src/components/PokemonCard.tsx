@@ -20,11 +20,15 @@ const formatNumber = (value: number) => value.toLocaleString();
 
 interface PokemonCardProps {
   data: PokemonData;
+  onAddToTeam?: (pokemon: PokemonData) => void;
+  isInTeam?: boolean;
+  canAdd?: boolean;
 }
 
-export const PokemonCard = ({ data }: PokemonCardProps) => {
+export const PokemonCard = ({ data, onAddToTeam, isInTeam = false, canAdd = true }: PokemonCardProps) => {
   const gradient = typeGradients[data.types[0]] ?? typeGradients.default;
   const heroSprite = data.sprites[0];
+  const addLabel = isInTeam ? 'Already in squad' : canAdd ? 'Add to squad' : 'Squad full';
 
   return (
     <motion.section
@@ -55,6 +59,16 @@ export const PokemonCard = ({ data }: PokemonCardProps) => {
                   ))}
                 </div>
               </div>
+
+              {onAddToTeam && (
+                <button
+                  className="px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-400/30 text-emerald-100 font-semibold disabled:opacity-60"
+                  disabled={isInTeam || !canAdd}
+                  onClick={() => onAddToTeam(data)}
+                >
+                  {addLabel}
+                </button>
+              )}
 
               {data.flavorText && (
                 <p className="text-white/70 text-lg leading-relaxed">

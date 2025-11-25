@@ -90,3 +90,22 @@ export type BattleIntelResponse = {
     } | null;
   };
 };
+
+export type TeamWeaknessEntry = {
+  type: string;
+  affected: number;
+};
+
+export type TeamResistanceEntry = {
+  type: string;
+  protectors: number;
+};
+
+export type TeamMetrics = {
+  size: number;
+  uniqueTypes: string[];
+  coveragePercent: number;
+  glaringWeaknesses: TeamWeaknessEntry[];
+  sturdyResistances: TeamResistanceEntry[];
+  averageBaseTotal: number;
+};
